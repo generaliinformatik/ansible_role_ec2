@@ -1,0 +1,15 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- include_tasks: stat_instance_ids_file.yml
+  vars:
+    create_file: true
+- name: save instance ids to file
+  copy:
+    content: "{{ instance_ids }}"
+    dest: "{{ instance_ids_file.stat.path }}"
+- name: print filename
+  debug:
+    msg: instance ids have been saved to {{ instance_ids_file.stat.path }}

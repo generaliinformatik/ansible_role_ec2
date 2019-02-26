@@ -1,0 +1,16 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+# in:  instance_ids
+# out: instance_facts
+- import_tasks: get_facts_by_id.yml
+
+- include_tasks: set_costcenter.yml
+  vars:
+    resource: "{{ item.instance_id }}"
+  with_items: "{{ instance_facts.instances }}"
+
+- include_tasks: set_volume_costcenter.yml
+  with_items: "{{ instance_facts.instances }}"

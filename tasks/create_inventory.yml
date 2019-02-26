@@ -1,0 +1,24 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+# in:  instance_ids
+# out: instance_facts
+- import_tasks: get_facts_by_id.yml
+
+# create inventory group
+- name: add instance to inventory
+  add_host:
+    # If instances have the same name, they get overwritten here.
+    # See example below how to easily make 'hostname' unique again.
+    # hostname: "{{ item.tags.Name }}___{{ item.tags.hostname }}"
+    hostname: "{{ item.tags.Name }}"
+    ansible_host: "{{ item.tags.hostname }}.{{ domain_name }}"
+    groups: "{{ inventory_group }}"
+  with_items: "{{ instance_facts.instances }}"
+
+- name: print hostname
+  debug:
+    msg: instance {{ item.tags.hostname }}.{{ domain_name }} is {{ item.tags.Name }}
+  with_items: "{{ instance_facts.instances }}"

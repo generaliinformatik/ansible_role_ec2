@@ -1,0 +1,24 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: find images by name {{ image_name }}
+  ec2_ami_facts:
+    aws_access_key: "{{ aws_access_key | default(omit) }}"
+    aws_secret_key: "{{ aws_secret_key | default(omit) }}"
+    region: "{{ region }}"
+    filters:
+      name: "{{ image_name }}"
+  register: ami_facts
+
+- name: select most recent image
+  set_fact:
+    # We want to reuse ami_facts and its structure as much as possible,
+    # so we reduce it to contain only the desired (single) entry.
+    ami_facts: "{{ {'images': [(ami_facts.images|sort(attribute='name')|last)]} }}"
+
+- name: set default image to {{ ami_facts.images[0].name }}
+  set_fact:
+    default_image: "{{ ami_facts.images[0].image_id }}"
+

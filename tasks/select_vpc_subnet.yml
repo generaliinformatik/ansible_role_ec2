@@ -1,0 +1,31 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: get facts for {{ security_group }}
+  ec2_group_facts:
+    aws_access_key: "{{ aws_access_key | default(omit) }}"
+    aws_secret_key: "{{ aws_secret_key | default(omit) }}"
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ security_group }}"
+  register: group_facts
+
+- name: get subnet facts
+  ec2_vpc_subnet_facts:
+    aws_access_key: "{{ aws_access_key | default(omit) }}"
+    aws_secret_key: "{{ aws_secret_key | default(omit) }}"
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ group_facts.security_groups[0].vpc_id }}"
+      "tag:Name": "{{ vpc_subnet_name }}"
+  register: vpc_subnet_facts
+
+- name: get subnet with most available free ip addresses
+  set_fact:
+    default_vpc_subnet_id: "{{ (vpc_subnet_facts.subnets|sort(attribute='available_ip_address_count')|last).id }}"
+
+- name: print subnet id
+  debug:
+    msg: "{{ default_vpc_subnet_id }}"

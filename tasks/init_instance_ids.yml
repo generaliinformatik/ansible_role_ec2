@@ -1,0 +1,10 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: initialize instance_ids list
+  set_fact:
+    instance_ids: []
+
+

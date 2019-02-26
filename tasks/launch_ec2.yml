@@ -1,0 +1,110 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- import_tasks: init_volumes.yml
+
+- name: configure root volume
+  include_tasks: configure_root_volume.yml
+
+- name: configure additional volumes
+  include_tasks: configure_volume.yml
+  with_items: "{{ item.additional_volumes | default(omit) }}"
+  loop_control:
+    loop_var: vol
+  when: item.additional_volumes is defined
+
+- name: set costcenter
+  set_fact:
+    costcenter: "{{ item.costcenter | default(default_costcenter) }}"
+
+- name: configure standard tags
+  set_fact:
+    tags:
+      costcenter: "{{ costcenter }}"
+
+- name: configure additional tags
+  set_fact:
+    tags: "{{ tags | combine(item.additional_tags) }}"
+  when: item.additional_tags is defined
+
+- name: set region
+  set_fact:
+    region: "{{ item.region | default(default_region) }}"
+
+- name: set security group
+  set_fact:
+    security_group: "{{ item.group | default(default_group) }}"
+
+- name: automatically select default subnet
+  include_tasks: select_vpc_subnet.yml
+  when:
+    - item.vpc_subnet_id is not defined
+    - default_vpc_subnet_id is not defined
+
+- name: set subnet
+  set_fact:
+    vpc_subnet_id: "{{ item.vpc_subnet_id | default(default_vpc_subnet_id) }}"
+
+- name: automatically select default image
+  include_tasks: select_image.yml
+  vars:
+    image_name: "{{ default_image_name }}"
+  when:
+    - item.image is not defined
+    - item.image_name is not defined
+    - default_image is not defined
+    - default_image_name is defined
+
+- name: set image by name
+  include_tasks: select_image.yml
+  vars:
+    image_name: "{{ item.image_name }}"
+  when:
+    - item.image is not defined
+    - item.image_name is defined
+
+- name: set image by id
+  set_fact:
+    image: "{{ item.image | default(default_image) }}"
+  when:
+    - item.image_name is not defined
+
+# A better place for checking this would be outside of launch_ec2.yml, but for
+# now this is the easiest/quickest way to get that in here.
+- name: check for pre-existing instance {{ item.name }}
+  include_tasks: get_facts_by_name.yml
+  vars:
+    name: "{{ item.name }}"
+
+- name: launch new instance {{ item.name }}
+  ec2_instance:
+    aws_access_key: "{{ aws_access_key | default(omit) }}"
+    aws_secret_key: "{{ aws_secret_key | default(omit) }}"
+    key_name: "{{ item.key_name | default(default_key_name) }}"
+    image_id: "{{ image | default(default_image) }}"
+    instance_type: "{{ item.instance_type | default(default_instance_type) }}"
+    security_group: "{{ security_group }}"
+    # TODO: Should be configurable?! "yes" is desireable for a single/few instances
+    # because it is reliable and renders our custom "wait 120 seconds" obsolete.
+    # "no" is desireable if you want to spin up a lot of instances and you wouldn't
+    # want to do (and wait for) that in sequence.
+    wait: no
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    region: "{{ region }}"
+    volumes: "{{ volumes }}"
+    name: "{{ item.name }}"   #┌ set 'name' explicitly instead of
+    tags: "{{ tags }}"        #└ 'Name' in the tags because of default 'filters'
+  register: ec2
+  when:
+    - instance_facts.instances
+      | rejectattr("state.name", "equalto", "terminated")
+      | list
+      | length == 0   # no pre-existing instance
+
+- name: remember instance_id
+  set_fact:
+    instance_ids: "{{ instance_ids + ec2.instance_ids }}"
+  when:
+    - ec2.changed

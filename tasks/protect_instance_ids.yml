@@ -1,0 +1,13 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- import_tasks: stat_instance_ids_file.yml
+- name: halt to protect saved ids
+  fail:
+    msg: remove {{ instance_ids_file.stat.path }} to continue
+  when:
+    - save_instance_ids is defined
+    - save_instance_ids == true
+    - instance_ids_file.stat.exists

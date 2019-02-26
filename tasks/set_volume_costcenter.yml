@@ -1,0 +1,12 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: set volume costcenter
+  include_tasks: set_costcenter.yml
+  vars:
+    resource: "{{ block_device.ebs.volume_id }}"
+  with_items: "{{ item.block_device_mappings }}"
+  loop_control:
+    loop_var: block_device

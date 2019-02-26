@@ -1,0 +1,14 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: set costcenter for {{ resource }}
+  ec2_tag:
+    aws_access_key: "{{ aws_access_key | default(omit) }}"
+    aws_secret_key: "{{ aws_secret_key | default(omit) }}"
+    resource: "{{ resource }}"
+    region: "{{ region }}"
+    tags:
+      costcenter: "{{ costcenter }}"
+

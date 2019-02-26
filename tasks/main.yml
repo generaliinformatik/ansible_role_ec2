@@ -1,0 +1,46 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+# Primitive mechanism to avoid overwriting something unintentionally:
+# You have to cleanup "leftovers" from a previous run yourself or you won't
+# be able to run this again.
+- name: check for previously saved instance ids
+  import_tasks: protect_instance_ids.yml
+
+- name: check for configuration dictionary
+  fail:
+    msg: instance_configuration missing, see vars/instance_cfg.howto.yml
+  when: instance_configuration is not defined
+
+- name: initialize instance_ids list
+  import_tasks: init_instance_ids.yml
+
+- name: create EC2 instance
+  include_tasks: launch_ec2.yml
+  with_items: "{{ instance_configuration.values() | list }}"
+
+- name: fail if no instances created
+  fail:
+    msg: no instances have been created
+  when:
+    - instance_ids | length == 0
+
+- name: save instance ids to file
+  import_tasks: save_instance_ids.yml
+  when:
+    - save_instance_ids is defined
+    - save_instance_ids
+
+# Waiting for instance(s) to finish booting. This is the dumb and lazy way
+# and will be replaced by something more intelligent that actually checks
+# if the instance(s) are up.
+- name: wait for instance(s) to boot
+  pause:
+    seconds: 120   # can probably be reduced
+
+- import_tasks: set_instance_costcenter.yml
+
+- name: build dynamic inventory
+  import_tasks: create_inventory.yml

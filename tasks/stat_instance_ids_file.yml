@@ -1,0 +1,26 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: set instance ids filename
+  set_fact:
+    # This setting is only needed here, therefore we keep it here and not
+    # in defaults/main.yml.
+    instance_ids_filename: /tmp/ec2_ids.{{ lookup("env", "USER") }}
+
+# This is a workaround: since you cannot retrieve the 'stat.path' result
+# if the file does not exist, include this task with a 'create: true' in
+# the vars section and have it created here before 'stat' is run.
+- name: create {{ instance_ids_filename }}
+  file:
+    path: "{{ instance_ids_filename }}"
+    state: touch
+  when:
+    - create_file is defined
+    - create_file
+
+- name: register file status {{ instance_ids_filename }}
+  stat:
+    path: "{{ instance_ids_filename }}"
+  register: instance_ids_file

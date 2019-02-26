@@ -1,0 +1,59 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+# ------------------------------------------------------------------------------
+
+# You need to modify the settings in this file according to your AWS
+# environment. Some settings have usable defaults that may work for you,
+# some are explicitly set to "dummy" for the lack of a sane default.
+
+# ------------------------------------------------------------------------------
+
+# These are default values that are going to be used if you don't define
+# corresponding variables without the "default"-prefix when building your
+# 'instance_configuration' dictionary. For example, if no 'instance_type'
+# is defined, it will be defined automatically using the value
+# from 'default_instance_type'.
+
+default_instance_type: t2.micro
+default_key_name: dummy
+default_group: dummy
+default_region: eu-central-1
+default_costcenter: dummy
+
+default_volume_size: 10   # GiB
+default_volume_type: gp2
+default_delete_on_termination: true
+default_root_volume:
+  device_name: /dev/sda1
+default_volume_costcenter: dummy
+
+# Selecting an image is special: 'default_image' takes precedence
+# over 'default_image_name'. (The exact specification of an ID should
+# overrule the name-based search.) Also, if you use wildcards in
+# 'default_image_name', the newest available image is automatically
+# selected for you.
+default_image_name: "COMMON-CentOS7*"
+#default_image: ami-7be48ae3
+
+# ------------------------------------------------------------------------------
+
+# general settings
+
+domain_name: yourcloud.com
+vpc_subnet_name: "Private-shared*"
+inventory_group: awscloud
+
+# ------------------------------------------------------------------------------
+
+# A temporary file is used to persist instance ids between plays by using
+# the tasks save_instance_ids.yml and load_instance_ids.yml.
+#
+# Once it has been created, you have to manually remove it before creating
+# new instances (with persistence enabled). This is for security reasons
+# (read: for your own good) so that you don't accidentally overwrite your
+# instance ids.
+
+save_instance_ids: true   # enable saving instance ids

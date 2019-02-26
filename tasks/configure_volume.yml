@@ -1,0 +1,16 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: create configuration for {{ vol.device_name }}
+  set_fact:
+    volume:
+      device_name: "{{ vol.device_name }}"   # must be supplied, cannot be defaulted
+      ebs:
+        volume_type: "{{ vol.volume_type | default(default_volume_type) }}"
+        volume_size: "{{ vol.volume_size | default(default_volume_size) }}"
+        delete_on_termination: "{{ vol.delete_on_termination | default(default_delete_on_termination) }}"
+- name: append configuration
+  set_fact:
+    volumes: "{{ volumes|default([]) + [ volume ] }}"

@@ -1,0 +1,18 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: create configuration for root volume
+  set_fact:
+    root_volume: "{{ item.root_volume | default({'device_name':default_root_volume.device_name}) }}"
+- name: check for device_name
+  set_fact:
+    root_volume: "{{ root_volume | combine(default_root_volume) }}"
+  when: root_volume.device_name is not defined
+- name: configure root volume
+  include_tasks: configure_volume.yml
+  with_items:
+    - "{{ root_volume }}"
+  loop_control:
+    loop_var: vol

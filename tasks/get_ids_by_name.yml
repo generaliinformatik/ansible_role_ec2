@@ -1,0 +1,14 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- include_tasks: get_facts_by_name.yml   # name, region
+
+- import_tasks: init_instance_ids.yml
+
+- name: populate instance_ids list
+  set_fact:
+    instance_ids: "{{ instance_ids + [ item.instance_id ] }}"
+  with_items: "{{ instance_facts.instances }}"
+

@@ -1,0 +1,10 @@
+#
+# https://github.com/generaliinformatik/ansible_role_ec2
+# (c) 2019 Generali Informatik
+#
+
+- name: terminate instances
+  ec2:
+    state: absent
+    region: "{{ region }}"
+    instance_ids: "{{ ec2.instance_ids }}"
