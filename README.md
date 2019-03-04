@@ -10,8 +10,9 @@ most free IP addresses or selecting the newest operating system image.
 
 ## Requirements
 - Ansible 2.7
-- Jinja 2.10
 - boto3
+- Jinja 2.10
+  - add `jinja2_native = true` to your `ansible.cfg`
 
 There are (breaking) incompatiblities with versions lower than listed above.
 Using
